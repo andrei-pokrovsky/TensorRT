@@ -101,7 +101,40 @@ RUN cd /usr/local/bin && wget https://ngc.nvidia.com/downloads/ngccli_cat_linux.
 ENV TRT_LIBPATH /usr/lib/x86_64-linux-gnu
 ENV TRT_OSSPATH /workspace/TensorRT
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${TRT_OSSPATH}/build/out:${TRT_LIBPATH}"
+
 WORKDIR /workspace
+
+RUN apt-get install -y mc
+RUN apt-get install -y protobuf-compiler libprotoc-dev
+RUN apt-get install -y git
+WORKDIR /workspace
+RUN git clone  https://github.com/onnx/onnx-tensorrt
+WORKDIR /workspace/onnx-tensorrt
+RUN mkdir build
+RUN git submodule sync
+RUN git submodule update --init --recursive
+WORKDIR /workspace/onnx-tensorrt/build
+RUN cmake .. -DTENSORRT_ROOT=/usr/lib/x86_64-linux-gnu/
+RUN make -j
+COPY *.onnx /workspace/
+WORKDIR /workspace
+#COPY ./ /workspace/TensorRT/ # wrong approach
+#WORKDIR /workspace/TensorRT/
+RUN git clone https://github.com/NVIDIA/TensorRT.git
+WORKDIR /workspace/TensorRT
+RUN git submodule sync
+RUN git submodule update --init --recursive
+RUN mkdir build
+WORKDIR /workspace/TensorRT/build
+RUN echo "CUDACXX=/usr/local/cuda/bin" | tee -a "/etc/environment"
+RUN cmake .. -DTENSORRT_ROOT=/usr/lib/x86_64-linux-gnu/
+RUN make -j
+
+# copy plugins if needed
+#COPY *.so   /workspace/
+# make sure the model from ~/model_export is model.onnx
+RUN LD_LIBRARY_PATH=. ./trtexec --onnx=/workspace/model.onnx
 
 USER trtuser
 RUN ["/bin/bash"]
+

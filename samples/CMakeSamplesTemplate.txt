@@ -15,19 +15,25 @@
 #
 
 # ensure SAMPLE_SOURCES is set
-if (NOT SAMPLE_SOURCES)
+if(NOT SAMPLE_SOURCES)
    message(FATAL_ERROR "You must define non empty SAMPLE_SOURCES variable before including this template")
 endif()
 
-set_ifndef(PLUGINS_NEEDED OFF)
-set_ifndef(SAMPLE_PARSERS "none")
+if(NOT DEFINED PLUGINS_NEEDED)
+  set(PLUGINS_NEEDED OFF)
+endif()
+if(NOT DEFINED SAMPLE_PARSERS)
+  set(SAMPLE_PARSERS "none")
+endif()
 
 set(TARGET_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 get_filename_component(SAMPLES_DIR ../ ABSOLUTE)
 get_filename_component(SAMPLE_DIR_NAME ${TARGET_DIR} NAME)
 
-set_ifndef(CUDA_INSTALL_DIR /usr/local/cuda)
+if(NOT DEFINED CUDA_INSTALL_DIR)
+  set(CUDA_INSTALL_DIR /usr/local/cuda)
+endif()
 
 # SAMPLES_COMMON_SOURCES
 set(SAMPLES_COMMON_SOURCES
@@ -94,17 +100,17 @@ if(${PLUGINS_NEEDED})
     list(APPEND SAMPLE_DEP_LIBS nvinfer_plugin)
 endif()
 
-if("caffe" IN_LIST SAMPLE_PARSERS)
+#if("caffe" IN_LIST SAMPLE_PARSERS)
     list(APPEND SAMPLE_DEP_LIBS nvcaffeparser)
-endif()
+#endif()
 
-if("onnx" IN_LIST SAMPLE_PARSERS)
+#if("onnx" IN_LIST SAMPLE_PARSERS)
     list(APPEND SAMPLE_DEP_LIBS nvonnxparser)
-endif()
+#endif()
 
-if("uff" IN_LIST SAMPLE_PARSERS)
+#if("uff" IN_LIST SAMPLE_PARSERS)
     list(APPEND SAMPLE_DEP_LIBS nvuffparser)
-endif()
+#endif()
 
 # Necessary to link nvinfer_plugin library.
 target_link_libraries(${TARGET_NAME}
@@ -114,7 +120,7 @@ target_link_libraries(${TARGET_NAME}
 
 set_target_properties(${TARGET_NAME} PROPERTIES LINK_FLAGS "-Wl,--exclude-libs,ALL")
 
-set_target_properties(${TARGET_NAME} PROPERTIES DEBUG_POSTFIX ${TRT_DEBUG_POSTFIX})
+#set_target_properties(${TARGET_NAME} PROPERTIES DEBUG_POSTFIX ${TRT_DEBUG_POSTFIX})
 
 set_target_properties(${TARGET_NAME}
     PROPERTIES
