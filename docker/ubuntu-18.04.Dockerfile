@@ -116,7 +116,6 @@ RUN git submodule update --init --recursive
 WORKDIR /workspace/onnx-tensorrt/build
 RUN cmake .. -DTENSORRT_ROOT=/usr/lib/x86_64-linux-gnu/
 RUN make -j
-COPY *.onnx /workspace/
 WORKDIR /workspace
 #COPY ./ /workspace/TensorRT/ # wrong approach
 #WORKDIR /workspace/TensorRT/
@@ -132,8 +131,16 @@ RUN make -j
 
 # copy plugins if needed
 #COPY *.so   /workspace/
+#RUN LD_LIBRARY_PATH=. ./trtexec --onnx=/workspace/model.onnx
+#RUN echo "cd /workspace/TensorRT/build" | tee -a "/workspace/TensorRT/build/run.bash"
+
 # make sure the model from ~/model_export is model.onnx
-RUN LD_LIBRARY_PATH=. ./trtexec --onnx=/workspace/model.onnx
+RUN echo "LD_LIBRARY_PATH=. ./trtexec --onnx=/workspace/model.onnx --saveEngine=/host_output/model.trt" | tee -a "/workspace/TensorRT/build/run.bash"
+RUN chmod +x /workspace/TensorRT/build/run.bash
+
+# make sure the model from ~/model_export is model.onnx
+COPY *.onnx /workspace/
+RUN mkdir /host_output
 
 USER trtuser
 RUN ["/bin/bash"]
